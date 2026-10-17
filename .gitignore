@@ -1,0 +1,29 @@
+# Godot 4+ specific ignores
+.godot/
+.import/
+*.translation
+
+# Godot-generated C# build artifacts
+.mono/
+data_*/
+mono_crash.*.json
+
+# .NET / C# build output
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+
+# Exported game builds (binaries, not source)
+builds/
+*.exe
+*.pck
+*.pdb
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
