@@ -14,27 +14,36 @@ public partial class MainMenuUI : Control
 		var background = new MenuBackground();
 		AddChild(background);
 
-		var title = UiTheme.MakeTitleLabel("SERPENTINA RACER", 56, Colors.White);
-		title.SetAnchorsPreset(LayoutPreset.TopWide);
-		title.Position = new Vector2(0, 60);
+		// A single CenterContainer keeps the whole block (title + buttons + info)
+		// correctly centered on screen regardless of resolution - no manual
+		// pixel offsets, which is what caused the previous layout bug.
+		var center = new CenterContainer();
+		center.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(center);
+
+		var content = new VBoxContainer();
+		content.AddThemeConstantOverride("separation", 22);
+		content.Alignment = BoxContainer.AlignmentMode.Center;
+		center.AddChild(content);
+
+		var title = UiTheme.MakeTitleLabel("SERPENTINA RACER", 52, Colors.White);
 		title.AddThemeColorOverride("font_outline_color", new Color(0, 0, 0, 0.6f));
 		title.AddThemeConstantOverride("outline_size", 8);
-		AddChild(title);
+		content.AddChild(title);
 
-		var subtitle = UiTheme.MakeTitleLabel("Corrida arcade nas serras", 22, new Color(1f, 0.92f, 0.78f));
-		subtitle.SetAnchorsPreset(LayoutPreset.TopWide);
-		subtitle.Position = new Vector2(0, 130);
-		AddChild(subtitle);
+		var subtitle = UiTheme.MakeTitleLabel("Corrida arcade nas serras", 20, new Color(1f, 0.92f, 0.78f));
+		content.AddChild(subtitle);
 
-		var buttons = new VBoxContainer
-		{
-			Position = new Vector2(0, 0),
-			CustomMinimumSize = new Vector2(320, 0)
-		};
-		buttons.SetAnchorsPreset(LayoutPreset.CenterLeft);
-		buttons.Position = new Vector2(90, -40);
-		buttons.AddThemeConstantOverride("separation", 18);
-		AddChild(buttons);
+		var spacer = new Control { CustomMinimumSize = new Vector2(0, 12) };
+		content.AddChild(spacer);
+
+		var row = new HBoxContainer();
+		row.AddThemeConstantOverride("separation", 50);
+		content.AddChild(row);
+
+		var buttons = new VBoxContainer { CustomMinimumSize = new Vector2(300, 0) };
+		buttons.AddThemeConstantOverride("separation", 16);
+		row.AddChild(buttons);
 
 		var startButton = new Button { Text = "INICIAR CORRIDA", CustomMinimumSize = new Vector2(300, 56) };
 		startButton.Pressed += OnStartPressed;
@@ -44,15 +53,13 @@ public partial class MainMenuUI : Control
 		quitButton.Pressed += OnQuitPressed;
 		buttons.AddChild(quitButton);
 
-		BuildInfoPanel();
+		BuildInfoPanel(row);
 	}
 
-	private void BuildInfoPanel()
+	private void BuildInfoPanel(Control parent)
 	{
-		var panel = new PanelContainer { CustomMinimumSize = new Vector2(380, 0) };
-		panel.SetAnchorsPreset(LayoutPreset.CenterRight);
-		panel.Position = new Vector2(-420, -160);
-		AddChild(panel);
+		var panel = new PanelContainer { CustomMinimumSize = new Vector2(360, 0) };
+		parent.AddChild(panel);
 
 		var box = new VBoxContainer();
 		box.AddThemeConstantOverride("separation", 6);
@@ -66,8 +73,7 @@ public partial class MainMenuUI : Control
 		AddControlLine(box, "R", "Reposicionar carro");
 		AddControlLine(box, "ESC", "Pausar");
 
-		var sep = new HSeparator();
-		box.AddChild(sep);
+		box.AddChild(new HSeparator());
 
 		float best = SaveSystem.Instance?.BestLapTime ?? -1f;
 		string bestText = best >= 0 ? TimeFormat.Format(best) : "--:--.---";

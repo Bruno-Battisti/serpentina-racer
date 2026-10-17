@@ -76,7 +76,7 @@ public partial class CarController : VehicleBody3D
 		float x = 0.86f;
 		float frontZ = -1.25f;
 		float rearZ = 1.25f;
-		float attachY = 0.42f;
+		float attachY = 0.62f;
 
 		AddWheel(0, new Vector3(-x, attachY, frontZ), true, true);
 		AddWheel(1, new Vector3(x, attachY, frontZ), true, true);
@@ -90,11 +90,11 @@ public partial class CarController : VehicleBody3D
 		{
 			Position = localPos,
 			WheelRadius = WheelRadius,
-			WheelRestLength = 0.38f,
-			SuspensionStiffness = 55f,
-			SuspensionTravel = 0.28f,
-			DampingCompression = 0.5f,
-			DampingRelaxation = 0.6f,
+			WheelRestLength = 0.28f,
+			SuspensionStiffness = 90f,
+			SuspensionTravel = 0.18f,
+			DampingCompression = 0.6f,
+			DampingRelaxation = 0.7f,
 			WheelFrictionSlip = 6.5f,
 			UseAsSteering = steering,
 			UseAsTraction = traction,
@@ -121,7 +121,10 @@ public partial class CarController : VehicleBody3D
 
 		if (ControlsEnabled)
 		{
-			throttleInput = Input.GetActionStrength("move_forward") - Input.GetActionStrength("move_backward");
+			// Godot's VehicleBody3D applies positive engine force along +Z, opposite of the
+			// visual "forward" (-Z) the car model and track orientation use, so the mapping
+			// is intentionally swapped here to make W/up actually drive forward.
+			throttleInput = Input.GetActionStrength("move_backward") - Input.GetActionStrength("move_forward");
 			steerInput = Input.GetActionStrength("turn_left") - Input.GetActionStrength("turn_right");
 			handbrake = Input.IsActionPressed("handbrake");
 

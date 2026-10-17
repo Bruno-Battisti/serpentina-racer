@@ -91,7 +91,10 @@ public partial class EnvironmentBuilder : Node3D
 				var (trackDist, trackHeight) = proximity.Nearest(p);
 				float rollingHill = noiseLow.GetNoise2D(x, z) * 2.5f;
 				float trackBlend = Mathf.SmoothStep(track.HalfWidth + 6f, track.HalfWidth + 40f, trackDist);
-				float baseHeight = Mathf.Lerp(trackHeight, trackHeight + rollingHill, trackBlend);
+				// Dip the terrain under/beside the road so it never pokes through the
+				// asphalt mesh (z-fighting), fading back to normal ground further out.
+				const float roadClearance = 0.4f;
+				float baseHeight = Mathf.Lerp(trackHeight - roadClearance, trackHeight + rollingHill, trackBlend);
 
 				float finalHeight = Mathf.Lerp(baseHeight, mountainHeight, farT);
 

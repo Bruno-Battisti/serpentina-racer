@@ -17,10 +17,12 @@ public partial class PauseMenu : Control
 
 		AddChild(new ColorRect { Color = new Color(0, 0, 0, 0.55f), AnchorRight = 1, AnchorBottom = 1 });
 
-		var panel = new PanelContainer { CustomMinimumSize = new Vector2(380, 0) };
-		panel.SetAnchorsPreset(LayoutPreset.Center);
-		panel.Position = new Vector2(-190, -160);
-		AddChild(panel);
+		var center = new CenterContainer();
+		center.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(center);
+
+		var panel = new PanelContainer { CustomMinimumSize = new Vector2(360, 0) };
+		center.AddChild(panel);
 
 		var box = new VBoxContainer();
 		box.AddThemeConstantOverride("separation", 16);

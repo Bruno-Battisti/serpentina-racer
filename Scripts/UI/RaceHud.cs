@@ -37,14 +37,28 @@ public partial class RaceHud : Control
 		AddChild(_countdownHideTimer);
 	}
 
+	/// <summary>Places a control at a screen edge/corner using size-flags inside a
+	/// full-rect MarginContainer, instead of hand-computed anchor+pixel offsets
+	/// (which previously produced badly misplaced, clipped UI).</summary>
+	private Control Pin(Control child, Control.SizeFlags h, Control.SizeFlags v, int margin = 18)
+	{
+		var wrap = new MarginContainer();
+		wrap.SetAnchorsPreset(LayoutPreset.FullRect);
+		wrap.MouseFilter = MouseFilterEnum.Ignore;
+		wrap.AddThemeConstantOverride("margin_left", margin);
+		wrap.AddThemeConstantOverride("margin_right", margin);
+		wrap.AddThemeConstantOverride("margin_top", margin);
+		wrap.AddThemeConstantOverride("margin_bottom", margin);
+		child.SizeFlagsHorizontal = h;
+		child.SizeFlagsVertical = v;
+		wrap.AddChild(child);
+		AddChild(wrap);
+		return wrap;
+	}
+
 	private void BuildTopBar()
 	{
 		var panel = new PanelContainer();
-		panel.SetAnchorsPreset(LayoutPreset.TopWide);
-		panel.Position = new Vector2(0, 16);
-		panel.GrowHorizontal = GrowDirection.Both;
-		AddChild(panel);
-
 		var row = new HBoxContainer();
 		row.AddThemeConstantOverride("separation", 40);
 		row.Alignment = BoxContainer.AlignmentMode.Center;
@@ -58,29 +72,26 @@ public partial class RaceHud : Control
 		row.AddChild(_timeLabel);
 		row.AddChild(_bestLabel);
 
-		var speedPanel = new PanelContainer();
-		speedPanel.SetAnchorsPreset(LayoutPreset.BottomRight);
-		speedPanel.Position = new Vector2(-190, -110);
-		AddChild(speedPanel);
+		Pin(panel, Control.SizeFlags.ShrinkCenter, Control.SizeFlags.ShrinkBegin);
 
+		var speedPanel = new PanelContainer();
 		_speedLabel = UiTheme.MakeTitleLabel("0 km/h", 34, Colors.White);
 		speedPanel.AddChild(_speedLabel);
+		Pin(speedPanel, Control.SizeFlags.ShrinkEnd, Control.SizeFlags.ShrinkEnd, 26);
 	}
 
 	private void BuildCenterLabels()
 	{
 		_countdownLabel = UiTheme.MakeTitleLabel("", 96, UiTheme.Accent);
-		_countdownLabel.SetAnchorsPreset(LayoutPreset.Center);
-		_countdownLabel.Position = new Vector2(-80, -220);
 		_countdownLabel.Visible = false;
-		AddChild(_countdownLabel);
+		Pin(_countdownLabel, Control.SizeFlags.ShrinkCenter, Control.SizeFlags.ShrinkCenter);
 
 		_messageLabel = UiTheme.MakeTitleLabel("", 32, Colors.White);
-		_messageLabel.SetAnchorsPreset(LayoutPreset.Center);
-		_messageLabel.Position = new Vector2(-250, -150);
 		_messageLabel.CustomMinimumSize = new Vector2(500, 0);
+		_messageLabel.HorizontalAlignment = HorizontalAlignment.Center;
 		_messageLabel.Visible = false;
-		AddChild(_messageLabel);
+		var messageWrap = Pin(_messageLabel, Control.SizeFlags.ShrinkCenter, Control.SizeFlags.ShrinkCenter);
+		messageWrap.AddThemeConstantOverride("margin_top", 500);
 	}
 
 	public void Setup(RaceManager raceManager, CarController car)

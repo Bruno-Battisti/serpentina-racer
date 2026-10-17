@@ -19,10 +19,12 @@ public partial class ResultsScreen : Control
 
 		AddChild(new ColorRect { Color = new Color(0, 0, 0, 0.65f), AnchorRight = 1, AnchorBottom = 1 });
 
-		var panel = new PanelContainer { CustomMinimumSize = new Vector2(420, 0) };
-		panel.SetAnchorsPreset(LayoutPreset.Center);
-		panel.Position = new Vector2(-210, -190);
-		AddChild(panel);
+		var center = new CenterContainer();
+		center.SetAnchorsPreset(LayoutPreset.FullRect);
+		AddChild(center);
+
+		var panel = new PanelContainer { CustomMinimumSize = new Vector2(400, 0) };
+		center.AddChild(panel);
 
 		var box = new VBoxContainer();
 		box.AddThemeConstantOverride("separation", 14);
