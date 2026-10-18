@@ -41,6 +41,9 @@ public partial class CarController : VehicleBody3D
 		ContactMonitor = true;
 		MaxContactsReported = 6;
 		BodyEntered += OnBodyEntered;
+		// The road/terrain are thin concave trimeshes; without continuous collision
+		// detection a fast-falling or bouncing car can tunnel straight through them.
+		ContinuousCd = true;
 
 		CollisionLayer = 0;
 		CollisionMask = 0;
@@ -76,7 +79,7 @@ public partial class CarController : VehicleBody3D
 		float x = 0.86f;
 		float frontZ = -1.25f;
 		float rearZ = 1.25f;
-		float attachY = 0.62f;
+		float attachY = 0.45f;
 
 		AddWheel(0, new Vector3(-x, attachY, frontZ), true, true);
 		AddWheel(1, new Vector3(x, attachY, frontZ), true, true);
@@ -90,11 +93,11 @@ public partial class CarController : VehicleBody3D
 		{
 			Position = localPos,
 			WheelRadius = WheelRadius,
-			WheelRestLength = 0.28f,
-			SuspensionStiffness = 90f,
-			SuspensionTravel = 0.18f,
-			DampingCompression = 0.6f,
-			DampingRelaxation = 0.7f,
+			WheelRestLength = 0.4f,
+			SuspensionStiffness = 65f,
+			SuspensionTravel = 0.26f,
+			DampingCompression = 0.5f,
+			DampingRelaxation = 0.6f,
 			WheelFrictionSlip = 6.5f,
 			UseAsSteering = steering,
 			UseAsTraction = traction,
