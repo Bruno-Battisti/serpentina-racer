@@ -188,6 +188,9 @@ public partial class CarController : VehicleBody3D
 
 		if (_crashCooldown > 0)
 			_crashCooldown -= delta;
+
+		if (GlobalPosition.Y < -60f)
+			ResetToLastSpawn();
 	}
 
 	private void UpdateWheelVisuals(float dt, float forwardSpeed)

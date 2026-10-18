@@ -142,10 +142,43 @@ public partial class TrackBuilder : Node3D
 		var meshInstance = new MeshInstance3D { Mesh = mesh, MaterialOverride = mat, Name = "RoadMesh" };
 		AddChild(meshInstance);
 
+		BuildRoadCollisionBoxes();
+	}
+
+	/// <summary>
+	/// Drivable-surface collision as one box per road segment. A trimesh
+	/// (ConcavePolygonShape3D) collider here was empirically unreliable against
+	/// the dynamic VehicleBody3D - the car would fall straight through after a
+	/// brief contact - while simple box shapes collide correctly every time, so
+	/// the whole road is approximated as a strip of thin oriented boxes instead.
+	/// </summary>
+	private void BuildRoadCollisionBoxes()
+	{
 		var body = new StaticBody3D { Name = "RoadCollision", PhysicsMaterialOverride = GroundPhysics };
 		body.SetCollisionLayerValue(1, true);
-		var shape = new CollisionShape3D { Shape = new ConcavePolygonShape3D { Data = collisionFaces.ToArray() } };
-		body.AddChild(shape);
+
+		int n = PathPoints.Count;
+		const float thickness = 0.6f;
+
+		for (int i = 0; i < n; i++)
+		{
+			int i2 = (i + 1) % n;
+			Vector3 mid = (PathPoints[i] + PathPoints[i2]) * 0.5f;
+			float segLength = PathPoints[i].DistanceTo(PathPoints[i2]);
+			Vector3 forward = Forwards[i];
+			Vector3 right = Rights[i];
+			Vector3 up = right.Cross(forward).Normalized();
+
+			var basis = new Basis(right, up, forward).Orthonormalized();
+			var box = new BoxShape3D { Size = new Vector3(RoadWidth + 0.3f, thickness, segLength + 0.2f) };
+			var collisionShape = new CollisionShape3D
+			{
+				Shape = box,
+				Transform = new Transform3D(basis, mid - Vector3.Up * (thickness * 0.5f))
+			};
+			body.AddChild(collisionShape);
+		}
+
 		AddChild(body);
 	}
 
@@ -278,30 +311,34 @@ public partial class TrackBuilder : Node3D
 		AddChild(mmi);
 	}
 
+	/// <summary>Barrier walls as a strip of boxes, same reasoning as the road collision.</summary>
 	private void BuildBarrierCollision(float barrierOffset)
 	{
 		int n = PathPoints.Count;
-		var faces = new List<Vector3>();
+		const float wallHeight = 1.3f;
+		const float wallThickness = 0.4f;
+
+		var body = new StaticBody3D { Name = "BarrierCollision", PhysicsMaterialOverride = GroundPhysics };
+		body.SetCollisionLayerValue(1, true);
 
 		foreach (float side in new[] { -1f, 1f })
 		{
 			for (int i = 0; i < n; i++)
 			{
 				int i2 = (i + 1) % n;
-				Vector3 a0 = PathPoints[i] + Rights[i] * (barrierOffset * side);
-				Vector3 a1 = PathPoints[i2] + Rights[i2] * (barrierOffset * side);
-				Vector3 b0 = a0 + Vector3.Up * 1.3f;
-				Vector3 b1 = a1 + Vector3.Up * 1.3f;
+				Vector3 mid = (PathPoints[i] + PathPoints[i2]) * 0.5f + Rights[i] * (barrierOffset * side) + Vector3.Up * (wallHeight * 0.5f);
+				float segLength = PathPoints[i].DistanceTo(PathPoints[i2]);
+				Vector3 forward = Forwards[i];
+				Vector3 right = Rights[i];
+				Vector3 up = right.Cross(forward).Normalized();
 
-				faces.Add(a0); faces.Add(b0); faces.Add(b1);
-				faces.Add(a0); faces.Add(b1); faces.Add(a1);
+				var basis = new Basis(right, up, forward).Orthonormalized();
+				var box = new BoxShape3D { Size = new Vector3(wallThickness, wallHeight, segLength + 0.2f) };
+				var collisionShape = new CollisionShape3D { Shape = box, Transform = new Transform3D(basis, mid) };
+				body.AddChild(collisionShape);
 			}
 		}
 
-		var body = new StaticBody3D { Name = "BarrierCollision", PhysicsMaterialOverride = GroundPhysics };
-		body.SetCollisionLayerValue(1, true);
-		var shape = new CollisionShape3D { Shape = new ConcavePolygonShape3D { Data = faces.ToArray() } };
-		body.AddChild(shape);
 		AddChild(body);
 	}
 

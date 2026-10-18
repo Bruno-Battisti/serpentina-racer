@@ -130,16 +130,43 @@ public partial class EnvironmentBuilder : Node3D
 		var mat = new StandardMaterial3D { VertexColorUseAsAlbedo = true, Roughness = 0.95f };
 		AddChild(new MeshInstance3D { Mesh = mesh, MaterialOverride = mat, Name = "Terrain" });
 
+		BuildTerrainCollisionBoxes(res, cell, half, heights);
+	}
+
+	/// <summary>
+	/// Off-road ground collision as a coarse grid of boxes. HeightMapShape3D
+	/// collider was empirically unreliable against the dynamic VehicleBody3D
+	/// (same issue as the road's trimesh - the car fell straight through), so
+	/// the terrain is approximated with simple boxes instead, which collide
+	/// correctly every time. Precision doesn't matter much off-road.
+	/// </summary>
+	private void BuildTerrainCollisionBoxes(int res, float cell, float half, float[] heights)
+	{
+		const int stride = 5;
+		float coarseCell = cell * stride;
+		const float thickness = 2f;
+
 		var body = new StaticBody3D { Name = "TerrainCollision", PhysicsMaterialOverride = GroundPhysics };
 		body.SetCollisionLayerValue(1, true);
-		var heightShape = new HeightMapShape3D
+
+		for (int zi = 0; zi < res; zi += stride)
 		{
-			MapWidth = res + 1,
-			MapDepth = res + 1,
-			MapData = heights
-		};
-		var shapeNode = new CollisionShape3D { Shape = heightShape, Scale = new Vector3(cell, 1f, cell) };
-		body.AddChild(shapeNode);
+			for (int xi = 0; xi < res; xi += stride)
+			{
+				float x = -half + (xi + stride * 0.5f) * cell;
+				float z = -half + (zi + stride * 0.5f) * cell;
+				float y = heights[zi * (res + 1) + xi];
+
+				var box = new BoxShape3D { Size = new Vector3(coarseCell + 0.5f, thickness, coarseCell + 0.5f) };
+				var collisionShape = new CollisionShape3D
+				{
+					Shape = box,
+					Position = new Vector3(x, y - thickness * 0.5f, z)
+				};
+				body.AddChild(collisionShape);
+			}
+		}
+
 		AddChild(body);
 	}
 

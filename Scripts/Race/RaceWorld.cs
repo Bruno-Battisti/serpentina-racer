@@ -26,6 +26,8 @@ public partial class RaceWorld : Node3D
 		AddChild(track);
 		track.Generate();
 
+		BuildVoidFloor();
+
 		var environment = new EnvironmentBuilder { Name = "Environment" };
 		AddChild(environment);
 		environment.Generate(track);
@@ -45,6 +47,18 @@ public partial class RaceWorld : Node3D
 		_raceManager.RaceFinished += OnRaceFinished;
 
 		BuildUi();
+	}
+
+	/// <summary>Last-resort catch-all floor far below the track, in case the car
+	/// ever ends up somewhere with no nearby collision (e.g. launched off the
+	/// map) - resets it instead of letting it fall forever.</summary>
+	private void BuildVoidFloor()
+	{
+		var floor = new StaticBody3D { Name = "VoidFloor" };
+		floor.SetCollisionLayerValue(1, true);
+		var shape = new CollisionShape3D { Shape = new BoxShape3D { Size = new Vector3(4000, 2, 4000) }, Position = new Vector3(0, -120, 0) };
+		floor.AddChild(shape);
+		AddChild(floor);
 	}
 
 	private void BuildUi()
